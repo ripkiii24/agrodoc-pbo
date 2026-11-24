@@ -1,0 +1,1742 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#176b43" />
+  <title>AgroDoc — Asisten Konsultasi Pertanian</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect fill='%23176b43' width='32' height='32' rx='8'/%3E%3Cpath fill='%23f4e2c4' d='M16 27c0-8 6-14 13-16-2 8-7 12-13 16z'/%3E%3Cpath fill='%23fff' d='M16 27C16 17 9 11 3 9c2 8 7 13 13 18z'/%3E%3C/svg%3E" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,560;9..144,680&family=Outfit:wght@360;440;520;640&display=swap" rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            leaf: "#176b43",
+            ink: "#173026",
+            cream: "#f6f3ea",
+            soil: "#8a4b12"
+          },
+          fontFamily: {
+            sans: ["Outfit", "Segoe UI", "sans-serif"],
+            display: ["Fraunces", "Georgia", "serif"]
+          }
+        }
+      }
+    };
+  </script>
+  <style>
+    :root {
+      --leaf: #176b43;
+      --leaf-dark: #0f3d28;
+      --ink: #173026;
+      --muted: #5d7368;
+      --line: #e2ebe4;
+      --cream: #f6f3ea;
+      --soil: #8a4b12;
+      --sand: #f8efe1;
+    }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body.agro {
+      margin: 0;
+      color: var(--ink);
+      font-family: Outfit, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(900px 420px at 8% -10%, rgba(255,255,255,.85), transparent 50%),
+        radial-gradient(700px 380px at 100% 0%, rgba(232, 186, 120, .35), transparent 46%),
+        linear-gradient(180deg, #e7f2e6 0%, #d5e4d6 100%);
+    }
+    button, input, textarea, select { font-family: inherit; }
+    button { cursor: pointer; }
+    .bingkai { width: 100%; }
+    .caption { display: none; }
+    .device {
+      position: relative;
+      width: 100%;
+      height: 100dvh;
+      background: #f7f6f2;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .status-fake { display: none; }
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 12px 16px 8px;
+    }
+    .brand { display: flex; align-items: center; gap: 8px; min-width: 0; }
+    .brand-mark {
+      width: 34px; height: 34px; border-radius: 12px;
+      background: var(--leaf-dark); display: grid; place-items: center; flex: none;
+    }
+    .brand h1 {
+      margin: 0; font-family: Fraunces, Georgia, serif; font-size: 22px; font-weight: 680; letter-spacing: -0.03em;
+    }
+    .brand p { margin: 0; color: var(--muted); font-size: 11px; letter-spacing: .01em; }
+    .btn-skema {
+      flex: none;
+      border: 1px solid #c9ddd0;
+      background: #fff;
+      color: var(--leaf-dark);
+      border-radius: 999px;
+      padding: 7px 10px;
+      font-size: 11px;
+      font-weight: 640;
+      line-height: 1.2;
+      text-align: left;
+      max-width: 148px;
+    }
+    .btn-skema span {
+      display: inline-grid; place-items: center;
+      min-width: 16px; height: 16px; margin-left: 4px;
+      border-radius: 999px; background: var(--leaf); color: #fff; font-size: 10px;
+    }
+    .stepper { padding: 0 16px 8px; }
+    .step-caption { margin: 0 0 6px; font-size: 12px; color: var(--muted); }
+    .dots { display: flex; gap: 6px; }
+    .dot { height: 5px; flex: 1; border-radius: 99px; background: #e1e8e2; }
+    .dot.is-done { background: #8fbfa4; }
+    .dot.is-now { background: var(--leaf); }
+    .stage { flex: 1; min-height: 0; position: relative; }
+    .view { display: none; height: 100%; }
+    .view.is-on { display: block; animation: naik .32s ease; }
+    .view.col.is-on { display: flex; flex-direction: column; }
+    .scroll { height: 100%; overflow: auto; padding: 6px 16px 20px; }
+    .view.col .scroll { height: auto; flex: 1; min-height: 0; }
+    .footer-bar, .composer {
+      padding: 10px 16px 16px;
+      background: linear-gradient(180deg, rgba(247,246,242,0), #f7f6f2 28%);
+    }
+    .footer-actions { display: flex; gap: 8px; }
+    h2.display {
+      margin: 0 0 6px;
+      font-family: Fraunces, Georgia, serif;
+      font-weight: 680;
+      font-size: 30px;
+      letter-spacing: -0.03em;
+      line-height: 1.05;
+    }
+    .lede { margin: 0 0 14px; color: #3e5649; font-size: 14.5px; line-height: 1.45; }
+    .hero-card {
+      background: linear-gradient(165deg, #124e32 0%, #1d7a4c 70%, #d7a15a 140%);
+      color: #fff; border-radius: 26px; padding: 18px 18px 16px; margin-bottom: 14px;
+    }
+    .eyebrow {
+      display: inline-block; font-size: 10px; letter-spacing: .14em; text-transform: uppercase;
+      background: rgba(255,255,255,.16); border-radius: 99px; padding: 4px 8px; margin-bottom: 10px;
+    }
+    .mini-list { display: grid; gap: 8px; margin: 14px 0; }
+    .mini {
+      background: #fff; border: 1px solid var(--line); border-radius: 16px; padding: 10px 12px;
+      display: flex; gap: 10px; align-items: flex-start;
+    }
+    .mini b { display: block; font-size: 14px; }
+    .mini span { color: var(--muted); font-size: 12.5px; line-height: 1.35; }
+    .num {
+      width: 26px; height: 26px; border-radius: 9px; background: #e7f3eb; color: var(--leaf-dark);
+      display: grid; place-items: center; font-size: 12px; font-weight: 700; flex: none;
+    }
+    .class-row { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0 16px; }
+    .tag {
+      font-family: ui-monospace, Consolas, monospace;
+      font-size: 10px; color: var(--leaf-dark); background: #e7f3eb;
+      border-radius: 999px; padding: 4px 8px;
+    }
+    .btn-primary, .btn-ghost, .btn-soil {
+      border: 0; border-radius: 16px; padding: 13px 14px; font-weight: 640; font-size: 15px;
+    }
+    .btn-primary { background: var(--leaf); color: #fff; flex: 1; }
+    .btn-primary:hover { background: #145c39; }
+    .btn-ghost { background: #fff; color: var(--ink); border: 1px solid var(--line); width: 108px; }
+    .btn-soil { background: var(--sand); color: var(--soil); }
+    .label { display: block; font-size: 12px; font-weight: 640; margin: 12px 0 6px; }
+    .field, .area {
+      width: 100%; border: 1px solid #d5e3da; background: #fff; border-radius: 14px;
+      padding: 12px 12px; font-size: 15px; color: var(--ink); outline: none;
+    }
+    .field:focus, .area:focus { border-color: #7eae91; box-shadow: 0 0 0 4px rgba(23,107,67,.12); }
+    .area { min-height: 96px; resize: vertical; line-height: 1.4; }
+    .chips, .suggests { display: flex; flex-wrap: wrap; gap: 8px; }
+    .chip, .suggest, .qfill {
+      border: 1px solid #d5e3da; background: #fff; color: var(--ink);
+      border-radius: 999px; padding: 8px 12px; font-size: 13px;
+    }
+    .chip.is-on, .qfill.is-on { background: var(--leaf); border-color: var(--leaf); color: #fff; }
+    .qfill { width: 100%; border-radius: 14px; text-align: left; }
+    .hint { margin: 8px 0 0; color: var(--muted); font-size: 12px; line-height: 1.4; }
+    .slip {
+      margin-top: 12px; background: var(--cream); border-radius: 16px; padding: 10px 12px;
+      border: 1px dashed #d9cbb3;
+    }
+    .slip b { font-family: ui-monospace, Consolas, monospace; font-size: 11px; color: var(--soil); font-weight: 640; }
+    .slip p { margin: 4px 0 0; font-size: 13px; line-height: 1.4; }
+    .media-card {
+      width: 100%; text-align: left; border-radius: 18px; border: 1px solid var(--line);
+      background: #fff; padding: 12px; margin-bottom: 8px;
+    }
+    .media-card strong { display: block; font-size: 15px; }
+    .media-card em { display: block; margin: 3px 0; font-style: normal; color: var(--leaf-dark); font-size: 12px; font-weight: 640; }
+    .media-card span { display: block; color: var(--muted); font-size: 12.5px; line-height: 1.35; }
+    .media-card.is-on { border-color: var(--leaf); background: #f3faf5; box-shadow: inset 0 0 0 1px var(--leaf); }
+    .dropzone {
+      width: 100%; border: 1.5px dashed #b7cfc2; background: #fff; border-radius: 18px;
+      min-height: 112px; display: grid; place-items: center; color: var(--muted); padding: 12px; text-align: center;
+    }
+    .dropzone img { width: 100%; height: 140px; object-fit: cover; border-radius: 12px; display: block; }
+    .linkish { border: 0; background: transparent; color: var(--soil); font-size: 12px; font-weight: 640; padding: 6px 0 0; }
+    .form-error {
+      margin: 0 0 8px; background: #fff1ea; color: #8a3416; border-radius: 12px; padding: 8px 10px; font-size: 13px;
+    }
+    .load-wrap { min-height: 100%; display: flex; flex-direction: column; justify-content: center; padding: 10px 4px 30px; }
+    .load-row {
+      display: flex; gap: 10px; align-items: flex-start; padding: 12px; border-radius: 16px; margin-bottom: 8px;
+      background: #fff; border: 1px solid var(--line); color: var(--muted);
+    }
+    .load-row p { margin: 0; font-size: 14px; line-height: 1.35; }
+    .load-row.is-active { color: var(--ink); border-color: #b7d7c4; }
+    .load-row.is-done { color: var(--ink); }
+    .mark { width: 18px; height: 18px; flex: none; margin-top: 1px; }
+    .wait { border-radius: 50%; border: 2px solid #d5e0d8; }
+    .spin { border-radius: 50%; border: 2px solid #d7eadf; border-top-color: var(--leaf); animation: putar .7s linear infinite; }
+    .ok { border-radius: 50%; background: var(--leaf); color: #fff; font-size: 11px; display: grid; place-items: center; }
+    .load-row .spin, .load-row .ok { display: none; }
+    .load-row.is-active .wait { display: none; }
+    .load-row.is-active .spin { display: block; }
+    .load-row.is-done .wait, .load-row.is-done .spin { display: none; }
+    .load-row.is-done .ok { display: grid; }
+    .tile-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
+    .tile, .block {
+      background: #fff; border: 1px solid var(--line); border-radius: 18px; padding: 12px;
+    }
+    .block { margin-bottom: 10px; }
+    .kicker { font-family: ui-monospace, Consolas, monospace; font-size: 10px; color: var(--leaf); letter-spacing: .02em; }
+    .tile h3, .block h3 { margin: 4px 0; font-size: 16px; line-height: 1.25; }
+    .muted { color: var(--muted); font-size: 12.5px; line-height: 1.4; margin: 0; }
+    .pill {
+      display: inline-block; border-radius: 999px; padding: 3px 8px; font-size: 11px; font-weight: 700;
+      background: #e7f3eb; color: var(--leaf-dark); margin-bottom: 8px;
+    }
+    .pill.warn { background: #f8ead6; color: var(--soil); }
+    .pill.hot { background: #fde4dc; color: #8d3418; }
+    .pill.soft { background: #eef2ef; color: #3e5649; }
+    .ref {
+      margin-top: 8px; background: #f4faf6; border-radius: 12px; padding: 8px; font-size: 12px; line-height: 1.4; color: #24513a;
+    }
+    .dose {
+      background: linear-gradient(165deg, #fff8ee, #f6e4c8);
+      border: 1px solid #efd7b2; border-radius: 22px; padding: 14px; margin-bottom: 10px;
+    }
+    .dose .kicker { color: var(--soil); }
+    .dose strong {
+      display: block; margin: 4px 0; font-family: Fraunces, Georgia, serif;
+      font-size: 34px; line-height: 1.05; letter-spacing: -0.03em; color: var(--soil); font-weight: 680;
+      overflow-wrap: anywhere;
+    }
+    .dose.is-wait strong { font-size: 26px; }
+    .dose.is-long strong { font-size: 22px; }
+    .meta-line { display: flex; gap: 8px; align-items: flex-start; margin-top: 8px; font-size: 13.5px; line-height: 1.35; }
+    .meta-line b { display: block; font-size: 11px; color: var(--soil); letter-spacing: .04em; text-transform: uppercase; }
+    .safety {
+      background: #fff; border-left: 3px solid #c46b2c; border-radius: 12px; padding: 10px 12px;
+      font-size: 13px; line-height: 1.45; margin-top: 8px;
+    }
+    .quote { font-size: 13px; color: #3e5649; margin: 0 0 10px; }
+    .row-actions { display: flex; gap: 8px; margin: 4px 0 14px; }
+    .row-actions button { flex: 1; padding: 10px; font-size: 13px; }
+    .chat-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; margin-bottom: 8px; }
+    .chat-head h3 { margin: 0; font-family: Fraunces, Georgia, serif; font-size: 22px; }
+    .msg { display: flex; margin: 0 0 8px; }
+    .msg.user { justify-content: flex-end; }
+    .bubble {
+      max-width: 88%; padding: 10px 12px; border-radius: 16px; font-size: 14px; line-height: 1.45;
+      white-space: pre-wrap; overflow-wrap: anywhere;
+    }
+    .msg.ai .bubble { background: #fff; border: 1px solid var(--line); border-bottom-left-radius: 5px; }
+    .msg.user .bubble { background: var(--leaf); color: #fff; border-bottom-right-radius: 5px; }
+    .dots-typing { display: flex; gap: 4px; padding: 4px 0; }
+    .dots-typing i {
+      width: 6px; height: 6px; border-radius: 50%; background: #8aa898; display: block;
+      animation: kedip 1s infinite ease-in-out;
+    }
+    .dots-typing i:nth-child(2) { animation-delay: .15s; }
+    .dots-typing i:nth-child(3) { animation-delay: .3s; }
+    .composer { border-top: 1px solid var(--line); }
+    .suggests { margin-bottom: 8px; }
+    .suggest { background: #fff; font-size: 12px; }
+    .chat-row { display: flex; gap: 8px; }
+    .chat-row input { flex: 1; }
+    .send {
+      border: 0; background: var(--leaf-dark); color: #fff; border-radius: 14px; padding: 0 14px; font-weight: 700;
+    }
+    .overlay, .drawer { position: absolute; inset: 0; visibility: hidden; }
+    .overlay { background: rgba(12, 32, 22, .48); opacity: 0; transition: opacity .25s ease; z-index: 20; }
+    .overlay.is-open { visibility: visible; opacity: 1; }
+    .drawer {
+      top: auto; max-height: 88%; background: #f6f3ea; border-radius: 24px 24px 0 0; z-index: 21;
+      transform: translateY(104%); transition: transform .32s ease; display: flex; flex-direction: column;
+      box-shadow: 0 -16px 40px rgba(0,0,0,.12);
+    }
+    .drawer.is-open { visibility: visible; transform: translateY(0); }
+    .drawer-head {
+      display: flex; justify-content: space-between; align-items: center; gap: 8px;
+      padding: 14px 16px 8px;
+    }
+    .drawer-head h3 { margin: 0; font-family: Fraunces, Georgia, serif; font-size: 22px; }
+    .icon-x { border: 0; background: #fff; width: 34px; height: 34px; border-radius: 50%; font-size: 18px; }
+    .drawer-body { overflow: auto; padding: 0 16px 24px; }
+    .flow { display: flex; gap: 6px; overflow: auto; padding-bottom: 8px; margin-bottom: 8px; }
+    .flow i { font-style: normal; color: var(--muted); align-self: center; }
+    .flow b {
+      flex: none; background: #fff; border-radius: 12px; padding: 8px; font-size: 10px; max-width: 108px;
+      border: 1px solid var(--line); font-family: ui-monospace, Consolas, monospace;
+    }
+    .flow b.on { border-color: var(--leaf); background: #f3faf5; }
+    .obj-card { background: #fff; border-radius: 16px; padding: 10px 12px; margin: 0 0 8px; border: 1px solid var(--line); }
+    .obj-card.off { opacity: .72; }
+    .obj-card h4 { margin: 0 0 6px; font-size: 14px; }
+    .rel { margin: 0 0 8px; font-size: 11px; color: var(--soil); text-align: center; }
+    .prop { margin-bottom: 6px; }
+    .prop span { display: block; font-size: 10px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+    .prop b { display: block; font-size: 13px; font-weight: 560; line-height: 1.35; overflow-wrap: anywhere; }
+    .prop.fk b { color: var(--leaf-dark); }
+    .banner-status { border-radius: 12px; padding: 8px 10px; font-size: 12.5px; margin-bottom: 8px; background: #e7f3eb; }
+    .thumb-hasil { width: 100%; height: 120px; object-fit: cover; border-radius: 14px; margin-bottom: 8px; }
+    .fine { font-size: 11px; color: var(--muted); line-height: 1.4; }
+    .is-hidden { display: none !important; }
+    .shake { animation: goyang .35s ease; }
+    @keyframes naik { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+    @keyframes putar { to { transform: rotate(360deg); } }
+    @keyframes kedip { 0%, 80%, 100% { opacity: .25; } 40% { opacity: 1; } }
+    @keyframes goyang {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-4px); }
+      75% { transform: translateX(4px); }
+    }
+    @media (min-width: 560px) {
+      body.agro { height: 100dvh; overflow: hidden; display: grid; place-items: center; }
+      .bingkai { width: 420px; }
+      .device {
+        height: min(860px, calc(100dvh - 78px));
+        border-radius: 36px;
+        border: 10px solid #12261b;
+        box-shadow: 0 30px 70px rgba(18, 42, 28, .28);
+      }
+      .status-fake {
+        display: flex; justify-content: space-between; padding: 6px 18px 0;
+        font-size: 12px; font-weight: 700;
+      }
+      .caption { display: block; text-align: center; color: #3d5648; font-size: 12px; margin: 10px 0 0; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation: none !important; transition: none !important; }
+    }
+  </style>
+</head>
+<body class="agro">
+  <div class="bingkai">
+    <div class="device" id="app">
+      <div class="status-fake"><span id="clock">09.41</span><span></span><span>AgroDoc</span></div>
+      <header class="topbar">
+        <div class="brand">
+          <div class="brand-mark" aria-hidden="true">
+            <svg width="20" height="20" viewBox="0 0 32 32" fill="none">
+              <path d="M16 28c0-9 7-16 14-18-2 9-8 14-14 18z" fill="#f4e2c4"/>
+              <path d="M16 28C16 17 8 11 2 9c2 9 8 14 14 19z" fill="#fff"/>
+            </svg>
+          </div>
+          <div>
+            <h1>AgroDoc</h1>
+            <p>Asisten petani pemula</p>
+          </div>
+        </div>
+        <button type="button" class="btn-skema" id="btn-skema" aria-expanded="false">
+          Lihat Skema Class PBO <span id="badge-jumlah">0</span>
+        </button>
+      </header>
+      <div class="stepper is-hidden" id="stepper">
+        <p class="step-caption" id="step-caption"></p>
+        <div class="dots" id="dots">
+          <i class="dot"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i>
+        </div>
+      </div>
+      <main class="stage">
+        <section class="view is-on" id="view-home">
+          <div class="scroll">
+            <div class="hero-card">
+              <div class="eyebrow">Prototipe PBO &amp; AI</div>
+              <h2 class="display" style="color:#fff;font-size:34px;">Konsultasi tanaman, langkah demi langkah.</h2>
+              <p style="margin:8px 0 0;color:rgba(255,255,255,.88);font-size:14px;line-height:1.45;">AgroDoc membantu petani pemula mengenali gejala, lalu menyusun obat dan cara semprot dari objek yang saling terhubung.</p>
+            </div>
+            <div class="mini-list">
+              <div class="mini"><div class="num">1</div><div><b>Profil tanaman &amp; media</b><span>Jenis, varietas, fase tumbuh, dan tempat menanam.</span></div></div>
+              <div class="mini"><div class="num">2</div><div><b>Gejala &amp; foto</b><span>Ceritakan kondisi daun. Foto hanya lampiran demo.</span></div></div>
+              <div class="mini"><div class="num">3</div><div><b>Diagnosis &amp; chat</b><span>Kartu dosis, lalu tanya lanjutan dengan konteks yang sama.</span></div></div>
+            </div>
+            <p class="label" style="margin-top:4px;">Lima class domain</p>
+            <div class="class-row">
+              <span class="tag">NamaTanaman</span>
+              <span class="tag">MediaTanam</span>
+              <span class="tag">Hama</span>
+              <span class="tag">ObatHama</span>
+              <span class="tag">PengaplikasianObat</span>
+            </div>
+            <button type="button" class="btn-primary" id="btn-mulai" style="width:100%;">Mulai konsultasi</button>
+            <p class="hint">Berjalan di peramban ini, tanpa backend dan tanpa kunci API. Dosis pada hasil adalah contoh demo — cocokkan selalu dengan label kemasan.</p>
+          </div>
+        </section>
+
+        <section class="view col" id="view-form">
+          <div class="scroll" id="form-scroll">
+            <div id="panel-1">
+              <h2 class="display">Tanaman apa yang sedang dirawat?</h2>
+              <p class="lede">Pilih jenis yang sudah tersedia, atau ketik sendiri. Varietas bebas diisi.</p>
+              <label class="label" for="jenis">Jenis tanaman</label>
+              <input class="field" id="jenis" placeholder="Contoh: Cabai Rawit" autocomplete="off" />
+              <div class="chips" id="chip-jenis" style="margin-top:8px;"></div>
+              <label class="label" for="varietas">Varietas</label>
+              <input class="field" id="varietas" placeholder="Contoh: Dewata" autocomplete="off" />
+              <div class="chips" id="chip-varietas" style="margin-top:8px;"></div>
+              <label class="label" for="fase">Fase tumbuh</label>
+              <select class="field" id="fase">
+                <option>Persemaian</option>
+                <option selected>Vegetatif</option>
+                <option>Generatif</option>
+                <option>Menjelang panen</option>
+              </select>
+              <div class="slip" id="preview-tanaman">
+                <b>class NamaTanaman</b>
+                <p>Objek muncul setelah jenis dan varietas diisi.</p>
+              </div>
+              <p class="hint">Jalur demo: Cabai Rawit · Dewata, lalu Polybag Sekam Bakar, lalu “Daun keriting &amp; menguning”.</p>
+            </div>
+            <div id="panel-2" class="is-hidden">
+              <h2 class="display">Ditanam di media apa?</h2>
+              <p class="lede">Setiap kartu adalah objek MediaTanam: jenis, pH ideal, dan sifatnya.</p>
+              <div id="media-wrap"></div>
+              <div class="slip" id="preview-media">
+                <b>class MediaTanam</b>
+                <p>Pilih salah satu media untuk menginstansiasi objek.</p>
+              </div>
+            </div>
+            <div id="panel-3" class="is-hidden">
+              <h2 class="display">Bagaimana kondisi tanamannya?</h2>
+              <p class="lede">Unggah foto bila ada, lalu tulis gejala. Diagnosis demo mencocokkan kalimat Anda dengan basis data, bukan membaca piksel foto.</p>
+              <input id="foto-input" type="file" accept="image/*" class="is-hidden" />
+              <button type="button" class="dropzone" id="btn-foto">
+                <span id="foto-kosong">Ketuk untuk memilih foto tanaman<br /><small>pratinjau lokal, tidak diunggah ke server</small></span>
+                <span id="foto-isi" class="is-hidden">
+                  <img id="foto-img" alt="Pratinjau foto tanaman" />
+                </span>
+              </button>
+              <button type="button" class="linkish is-hidden" id="btn-hapus-foto">Hapus foto</button>
+              <label class="label" for="keluhan">Deskripsi keluhan</label>
+              <div class="chips" id="qfill-wrap" style="margin-bottom:8px;"></div>
+              <textarea class="area" id="keluhan" maxlength="600" placeholder="Contoh: daun muda keriting, ada kutu putih kecil di balik daun."></textarea>
+              <div class="slip" id="preview-siap">
+                <b>Siap dianalisis</b>
+                <p id="siap-teks">Lengkapi langkah sebelumnya.</p>
+              </div>
+            </div>
+          </div>
+          <div class="footer-bar">
+            <p class="form-error is-hidden" id="form-error" role="alert"></p>
+            <div class="footer-actions">
+              <button type="button" class="btn-ghost" id="btn-back">Beranda</button>
+              <button type="button" class="btn-primary" id="btn-next">Lanjut</button>
+            </div>
+          </div>
+        </section>
+
+        <section class="view" id="view-loading" aria-live="polite">
+          <div class="scroll">
+            <div class="load-wrap">
+              <p class="kicker">class MesinDiagnosis</p>
+              <h2 class="display">Sedang menyusun diagnosis.</h2>
+              <p class="lede">Simulasi analisis bertahap. Tidak ada data yang dikirim keluar perangkat.</p>
+              <ul style="list-style:none;padding:0;margin:0;">
+                <li class="load-row" id="load-1"><i class="mark wait"></i><i class="mark spin"></i><i class="mark ok">✓</i><p>Memvalidasi profil tanaman &amp; media tanam...</p></li>
+                <li class="load-row" id="load-2"><i class="mark wait"></i><i class="mark spin"></i><i class="mark ok">✓</i><p>Menganalisis gejala visual &amp; mencari referensi jurnal/artikel agronomi...</p></li>
+                <li class="load-row" id="load-3"><i class="mark wait"></i><i class="mark spin"></i><i class="mark ok">✓</i><p>Mencocokkan dengan basis data hama &amp; dosis obat...</p></li>
+              </ul>
+              <p class="hint" id="load-note"></p>
+            </div>
+          </div>
+        </section>
+
+        <section class="view col" id="view-hasil">
+          <div class="scroll" id="hasil-scroll">
+            <span class="pill" data-out="kecocokan">—</span>
+            <p class="muted" data-out="jalur" style="margin-bottom:10px;"></p>
+            <img class="thumb-hasil is-hidden" id="foto-hasil" alt="Foto lampiran konsultasi" />
+            <p class="quote" data-out="fotoNote"></p>
+            <p class="quote">Keluhan: <span data-out="keluhan"></span></p>
+            <div class="tile-grid">
+              <article class="tile">
+                <div class="kicker">class NamaTanaman</div>
+                <h3 data-out="jenis">—</h3>
+                <p class="muted"><span data-out="varietas"></span> · <span data-out="fase"></span></p>
+                <p class="fine" data-out="idTanaman"></p>
+              </article>
+              <article class="tile">
+                <div class="kicker">class MediaTanam</div>
+                <h3 data-out="media">—</h3>
+                <p class="muted">pH ideal <span data-out="ph"></span></p>
+                <p class="fine" data-out="idMedia"></p>
+              </article>
+            </div>
+            <p class="muted" data-out="karakter" style="margin:-2px 0 10px;"></p>
+            <article class="block">
+              <div class="kicker">class Hama</div>
+              <h3 data-out="hama">—</h3>
+              <span class="pill" data-out="parah">—</span>
+              <p class="muted" data-out="gejala"></p>
+              <div class="ref"><b>Sumber rujukan · referensiArtikel</b><br /><span data-out="rujukan"></span></div>
+              <p class="fine" data-out="idHama" style="margin-top:6px;"></p>
+            </article>
+            <article class="block">
+              <div class="kicker">class ObatHama</div>
+              <h3 data-out="obat">—</h3>
+              <p class="muted">Bahan aktif: <span data-out="bahan"></span></p>
+              <p class="muted">Jenis: <span data-out="jenisPestisida"></span></p>
+              <p class="fine" data-out="relasiObat" style="margin-top:6px;"></p>
+            </article>
+            <article class="dose" id="dose-box">
+              <div class="kicker">class PengaplikasianObat · dosis per liter air</div>
+              <strong data-out="dosis">—</strong>
+              <div class="meta-line"><div><b>Waktu aplikasi</b><span data-out="waktu"></span></div></div>
+              <div class="meta-line"><div><b>Metode semprot</b><span data-out="metode"></span></div></div>
+              <div class="safety"><b>Keamanan. </b><span data-out="aman"></span></div>
+              <p class="fine" data-out="relasiAplikasi" style="margin-top:8px;"></p>
+            </article>
+            <div class="safety is-hidden" id="banner-panen">Fase tumbuh mendekati panen. Jeda petik pada label lebih penting daripada menyemprot ulang.</div>
+            <div class="row-actions">
+              <button type="button" class="btn-ghost" id="btn-ubah" style="width:auto;">Ubah data</button>
+              <button type="button" class="btn-soil" id="btn-baru">Konsultasi baru</button>
+            </div>
+            <div class="chat-head">
+              <h3>Room chat</h3>
+              <span class="fine">Konteks sesi tersimpan</span>
+            </div>
+            <div id="chat-log" aria-live="polite"></div>
+          </div>
+          <div class="composer">
+            <div class="suggests" id="suggests"></div>
+            <form class="chat-row" id="chat-form">
+              <input class="field" id="chat-input" maxlength="300" placeholder="Tulis pertanyaan lanjutan..." autocomplete="off" />
+              <button class="send" type="submit">Kirim</button>
+            </form>
+          </div>
+        </section>
+      </main>
+      <div class="overlay" id="overlay"></div>
+      <section class="drawer" id="drawer" role="dialog" aria-modal="true" aria-labelledby="judul-skema">
+        <div class="drawer-head">
+          <div>
+            <p class="kicker" style="margin:0;">Sesi konsultasi aktif</p>
+            <h3 id="judul-skema">Skema Class PBO</h3>
+          </div>
+          <button type="button" class="icon-x" id="btn-tutup-skema" aria-label="Tutup">×</button>
+        </div>
+        <div class="drawer-body" id="drawer-body"></div>
+      </section>
+    </div>
+    <p class="caption">Kerangka mobile di tengah layar — untuk demo presentasi AgroDoc.</p>
+  </div>
+
+  <script>
+    "use strict";
+
+    /**
+     * Domain tugas: NamaTanaman, MediaTanam, Hama, ObatHama, PengaplikasianObat.
+     * Relasi: ObatHama.hamaId -> Hama.id
+     *         PengaplikasianObat.obatId -> ObatHama.id
+     * Lapisan aplikasi: SkenarioAgronomi, MesinDiagnosis, SesiKonsultasi,
+     * AsistenChat, AntarmukaAgroDoc.
+     */
+
+    function norm(teks) {
+      return String(teks || "")
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/[^a-z0-9\s]/g, " ")
+        .replace(/\s+/g, " ")
+        .trim();
+    }
+
+    function escapeHtml(nilai) {
+      return String(nilai ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+    }
+
+    class NamaTanaman {
+      constructor({ id, jenisTanaman, varietas, faseTumbuh }) {
+        this.id = id;
+        this.jenisTanaman = jenisTanaman;
+        this.varietas = varietas;
+        this.faseTumbuh = faseTumbuh;
+      }
+      static dari(data) { return new NamaTanaman(data); }
+      toString() { return "NamaTanaman(" + this.id + ": " + this.jenisTanaman + " / " + this.varietas + ")"; }
+    }
+
+    class MediaTanam {
+      constructor({ id, jenisMedia, phIdeal, karakteristik }) {
+        this.id = id;
+        this.jenisMedia = jenisMedia;
+        this.phIdeal = phIdeal;
+        this.karakteristik = karakteristik;
+      }
+      static dari(data) { return new MediaTanam(data); }
+      hidroponik() { return /hidroponik|nft/i.test(this.jenisMedia); }
+      toString() { return "MediaTanam(" + this.id + ": " + this.jenisMedia + ")"; }
+    }
+
+    class Hama {
+      constructor({ id, namaHama, gejalaKhas, tingkatKeparahan, referensiArtikel }) {
+        this.id = id;
+        this.namaHama = namaHama;
+        this.gejalaKhas = gejalaKhas;
+        this.tingkatKeparahan = tingkatKeparahan;
+        this.referensiArtikel = referensiArtikel;
+      }
+      static dari(data) { return new Hama(data); }
+      toString() { return "Hama(" + this.id + ": " + this.namaHama + ")"; }
+    }
+
+    class ObatHama {
+      constructor({ id, hamaId, namaObat, bahanAktif, jenisPestisida }) {
+        this.id = id;
+        this.hamaId = hamaId;
+        this.namaObat = namaObat;
+        this.bahanAktif = bahanAktif;
+        this.jenisPestisida = jenisPestisida;
+      }
+      static dari(data) { return new ObatHama(data); }
+      terkaitDengan(hama) { return Boolean(hama) && this.hamaId === hama.id; }
+      siapDipakai() {
+        return this.jenisPestisida !== "Belum direkomendasikan" && this.bahanAktif !== "—";
+      }
+      toString() { return "ObatHama(" + this.id + ": " + this.bahanAktif + ")"; }
+    }
+
+    class PengaplikasianObat {
+      constructor({ id, obatId, dosisPerLiter, waktuAplikasi, metodeSemprot, catatanKeamanan }) {
+        this.id = id;
+        this.obatId = obatId;
+        this.dosisPerLiter = dosisPerLiter;
+        this.waktuAplikasi = waktuAplikasi;
+        this.metodeSemprot = metodeSemprot;
+        this.catatanKeamanan = catatanKeamanan;
+      }
+      static dari(data) { return new PengaplikasianObat(data); }
+      untukObat(obat) { return Boolean(obat) && this.obatId === obat.id; }
+      toString() { return "PengaplikasianObat(" + this.id + ": " + this.dosisPerLiter + ")"; }
+    }
+
+    class SkenarioAgronomi {
+      constructor(data) {
+        this.kode = data.kode;
+        this.judul = data.judul;
+        this.tanaman = data.tanaman;
+        this.media = data.media;
+        this.hama = data.hama;
+        this.obat = data.obat;
+        this.aplikasi = data.aplikasi;
+        this.kunciTanaman = data.kunciTanaman;
+        this.kunciVarietas = data.kunciVarietas;
+        this.kunciMedia = data.kunciMedia;
+        this.kunciGejala = data.kunciGejala;
+        if (!this.obat.terkaitDengan(this.hama) || !this.aplikasi.untukObat(this.obat)) {
+          throw new Error("Relasi skenario putus: " + this.kode);
+        }
+      }
+    }
+
+    class SesiKonsultasi {
+      constructor() { this.kosongkan(); }
+      kosongkan() {
+        this.tanaman = null;
+        this.media = null;
+        this.hama = null;
+        this.obat = null;
+        this.aplikasi = null;
+        this.keluhan = "";
+        this.foto = "";
+        this.kecocokan = "";
+        this.jalur = "";
+      }
+      terapkan(hasil) {
+        this.tanaman = hasil.tanaman;
+        this.media = hasil.media;
+        this.hama = hasil.hama;
+        this.obat = hasil.obat;
+        this.aplikasi = hasil.aplikasi;
+        this.kecocokan = hasil.kecocokan;
+        this.jalur = hasil.jalur;
+        this.keluhan = hasil.keluhan;
+      }
+      jumlahObjek() {
+        return [this.tanaman, this.media, this.hama, this.obat, this.aplikasi].filter(Boolean).length;
+      }
+      rantaiUtuh() {
+        return this.jumlahObjek() === 5 && this.obat.terkaitDengan(this.hama) && this.aplikasi.untukObat(this.obat);
+      }
+    }
+
+    class MesinDiagnosis {
+      constructor() {
+        this.mediaKatalog = [
+          new MediaTanam({
+            id: "MT-02",
+            jenisMedia: "Polybag Sekam Bakar",
+            phIdeal: "5,8–6,5",
+            karakteristik: "Ringan dan porous, cepat kering, kalium dari abu sekam cukup tinggi."
+          }),
+          new MediaTanam({
+            id: "MT-01",
+            jenisMedia: "Tanah Bedengan",
+            phIdeal: "6,0–6,8",
+            karakteristik: "Tanah diolah gembur dengan kompos. Drainase dijaga lewat guludan."
+          }),
+          new MediaTanam({
+            id: "MT-03",
+            jenisMedia: "Hidroponik NFT",
+            phIdeal: "5,5–6,5",
+            karakteristik: "Larutan nutrisi mengalir tipis di talang. Lembap, jadi jamur mudah menular."
+          }),
+          new MediaTanam({
+            id: "MT-04",
+            jenisMedia: "Cocopeat",
+            phIdeal: "5,5–6,5",
+            karakteristik: "Serat kelapa menahan air. Perlu tambahan kalsium dan magnesium."
+          })
+        ];
+        const media = (id) => this.mediaKatalog.find((m) => m.id === id);
+        this.skenario = [
+          new SkenarioAgronomi({
+            kode: "S1",
+            judul: "Cabai Rawit Dewata · Kutu Kebul",
+            tanaman: new NamaTanaman({
+              id: "NT-01",
+              jenisTanaman: "Cabai Rawit",
+              varietas: "Dewata",
+              faseTumbuh: "Generatif"
+            }),
+            media: media("MT-02"),
+            hama: new Hama({
+              id: "HM-01",
+              namaHama: "Kutu Kebul (Bemisia tabaci)",
+              gejalaKhas: "Daun keriting dan menguning, pucuk kerdil, sering ada kutu putih kecil di balik daun serta embun madu. Hama ini dapat menularkan virus kuning.",
+              tingkatKeparahan: "Tinggi",
+              referensiArtikel: "[Data dummy prototipe] Topik ilustratif: dinamika Bemisia tabaci pada cabai rawit dan perannya sebagai vektor virus kuning. Bukan sitasi jurnal sungguhan."
+            }),
+            obat: new ObatHama({
+              id: "OB-01",
+              hamaId: "HM-01",
+              namaObat: "Agrimec 18 EC (contoh dagang)",
+              bahanAktif: "Abamektin",
+              jenisPestisida: "Insektisida"
+            }),
+            aplikasi: new PengaplikasianObat({
+              id: "PA-01",
+              obatId: "OB-01",
+              dosisPerLiter: "1 ml / liter air",
+              waktuAplikasi: "Sore, pukul 16.00–17.30",
+              metodeSemprot: "Semprot sisi bawah daun sampai basah merata, utamakan pucuk dan tunas muda.",
+              catatanKeamanan: "Contoh dosis demo, bukan anjuran label. Pakai sarung tangan, masker, dan baju lengan panjang. Jangan semprot saat angin kencang. Jeda petik contoh 7 hari. Jangan campur dengan bahan yang bersifat basa. Cocokkan dengan kemasan yang Anda beli."
+            }),
+            kunciTanaman: ["cabai", "cabe", "rawit"],
+            kunciVarietas: "dewata",
+            kunciMedia: ["sekam", "polybag"],
+            kunciGejala: ["keriting", "kebul", "kutu", "embun madu"]
+          }),
+          new SkenarioAgronomi({
+            kode: "S2",
+            judul: "Tomat Servo · Ulat Grayak",
+            tanaman: new NamaTanaman({
+              id: "NT-02",
+              jenisTanaman: "Tomat",
+              varietas: "Servo",
+              faseTumbuh: "Generatif"
+            }),
+            media: media("MT-01"),
+            hama: new Hama({
+              id: "HM-02",
+              namaHama: "Ulat Grayak (Spodoptera litura)",
+              gejalaKhas: "Daun berlubang tidak beraturan, tepi daun robek, ada kotoran gelap, ulat hijau-coklat bersembunyi di balik daun.",
+              tingkatKeparahan: "Sedang",
+              referensiArtikel: "[Data dummy prototipe] Topik ilustratif: kerusakan Spodoptera litura pada tomat dan pengendalian ulat pemakan daun di bedengan. Bukan sitasi jurnal sungguhan."
+            }),
+            obat: new ObatHama({
+              id: "OB-02",
+              hamaId: "HM-02",
+              namaObat: "Proclaim 5 SG (contoh dagang)",
+              bahanAktif: "Emamektin benzoat",
+              jenisPestisida: "Insektisida"
+            }),
+            aplikasi: new PengaplikasianObat({
+              id: "PA-02",
+              obatId: "OB-02",
+              dosisPerLiter: "0,5 g / liter air",
+              waktuAplikasi: "Pagi, pukul 06.00–08.00",
+              metodeSemprot: "Kumpulkan ulat yang sudah besar dengan tangan bersarung, lalu semprot permukaan dan balik daun yang berlubang.",
+              catatanKeamanan: "Contoh dosis demo, bukan anjuran label. Jangan makan atau merokok saat mencampur. Jauhkan dari anak-anak dan kolam ikan. Jika hujan turun dalam 4 jam, jadwalkan ulang saat daun kering. Cocokkan takaran dengan kemasan."
+            }),
+            kunciTanaman: ["tomat"],
+            kunciVarietas: "servo",
+            kunciMedia: ["bedengan", "tanah"],
+            kunciGejala: ["grayak", "ulat", "berlubang", "dimakan", "gerekan", "bolong"]
+          }),
+          new SkenarioAgronomi({
+            kode: "S3",
+            judul: "Selada Romaine · Busuk Daun",
+            tanaman: new NamaTanaman({
+              id: "NT-03",
+              jenisTanaman: "Selada",
+              varietas: "Romaine",
+              faseTumbuh: "Vegetatif"
+            }),
+            media: media("MT-03"),
+            hama: new Hama({
+              id: "HM-03",
+              namaHama: "Busuk Daun (Bremia lactucae)",
+              gejalaKhas: "Bercak coklat berair yang cepat meluas saat lembap, kadang disertai lapisan putih halus di balik daun.",
+              tingkatKeparahan: "Tinggi",
+              referensiArtikel: "[Data dummy prototipe] Topik ilustratif: busuk daun selada pada sistem NFT dan sanitasi talang agar spora tidak ikut aliran nutrisi. Bukan sitasi jurnal sungguhan."
+            }),
+            obat: new ObatHama({
+              id: "OB-03",
+              hamaId: "HM-03",
+              namaObat: "Previcur N (contoh dagang)",
+              bahanAktif: "Propamokarb hidroklorida",
+              jenisPestisida: "Fungisida"
+            }),
+            aplikasi: new PengaplikasianObat({
+              id: "PA-03",
+              obatId: "OB-03",
+              dosisPerLiter: "1 ml / liter air",
+              waktuAplikasi: "Pagi, pukul 06.00–08.00",
+              metodeSemprot: "Semprot daun di sekitar bercak. Jangan menyiram dari atas. Buang daun busuk ke tempat sampah tertutup, jangan ke talang.",
+              catatanKeamanan: "Contoh dosis demo, bukan anjuran label. Jangan tuang sisa semprotan ke tandon atau aliran NFT. Daun yang akan dimakan perlu jeda sesuai label. Pakai sarung tangan saat mencampur."
+            }),
+            kunciTanaman: ["selada"],
+            kunciVarietas: "romaine",
+            kunciMedia: ["hidroponik", "nft"],
+            kunciGejala: ["bercak", "berair", "jamur", "busuk", "bulu halus", "coklat", "cokelat"]
+          })
+        ];
+      }
+
+      ambilMedia(nama) {
+        const n = norm(nama);
+        return this.mediaKatalog.find((m) => norm(m.jenisMedia) === n) || null;
+      }
+
+      diagnosis(input) {
+        const peringkat = this.skenario.map((skenario) => ({
+          skenario: skenario,
+          skor: this.hitungSkor(skenario, input)
+        })).sort((a, b) => b.skor - a.skor);
+        const terbaik = peringkat[0];
+        if (terbaik && terbaik.skor >= 5) {
+          return this.dariSkenario(terbaik.skenario, input, terbaik.skor);
+        }
+        return this.fallback(input);
+      }
+
+      hitungSkor(skenario, input) {
+        const jenis = norm(input.jenisTanaman);
+        const varietas = norm(input.varietas);
+        const media = norm(input.mediaObjek.jenisMedia);
+        const gejala = norm(input.keluhan);
+        let skor = 0;
+        if (skenario.kunciTanaman.some((k) => jenis.includes(k))) skor += 4;
+        if (varietas.includes(skenario.kunciVarietas)) skor += 2;
+        if (skenario.kunciMedia.some((k) => media.includes(k))) skor += 2;
+        let kena = 0;
+        skenario.kunciGejala.forEach((k) => {
+          if (gejala.includes(k)) kena += 3;
+        });
+        return skor + Math.min(kena, 9);
+      }
+
+      dariSkenario(skenario, input, skor) {
+        const jenisCocok = skenario.kunciTanaman.some((k) => norm(input.jenisTanaman).includes(k));
+        const varietasCocok = norm(input.varietas).includes(skenario.kunciVarietas);
+        return {
+          tanaman: new NamaTanaman({
+            id: jenisCocok && varietasCocok ? skenario.tanaman.id : "NT-SESI",
+            jenisTanaman: input.jenisTanaman,
+            varietas: input.varietas,
+            faseTumbuh: input.faseTumbuh
+          }),
+          media: MediaTanam.dari(input.mediaObjek),
+          hama: Hama.dari(skenario.hama),
+          obat: ObatHama.dari(skenario.obat),
+          aplikasi: PengaplikasianObat.dari(skenario.aplikasi),
+          kecocokan: skor >= 10 ? "Kecocokan basis data: Tinggi" : "Kecocokan basis data: Cukup",
+          jalur: "Jalur " + skenario.kode + " · " + skenario.judul,
+          keluhan: input.keluhan
+        };
+      }
+
+      fallback(input) {
+        const gejala = norm(input.keluhan);
+        const hidro = input.mediaObjek.hidroponik();
+        const tambahan = hidro ? " Jangan masukkan sisa semprotan ke tandon atau talang NFT." : "";
+        let profil;
+        if (/ulat|berlubang|bolong|grayak|gerekan|dimakan/.test(gejala)) {
+          profil = {
+            idH: "HM-FB2", idO: "OB-FB2", idP: "PA-FB2",
+            namaHama: "Ulat pemakan daun (dugaan dari kalimat bebas)",
+            gejalaKhas: "Keluhan menyebut bekas gigitan atau ulat. Dugaan awal: ulat pemakan daun, belum dikunci ke satu spesies.",
+            parah: "Sedang",
+            rujukan: "[Data dummy prototipe] Fallback cerdas: kata kunci ulat/lubang tidak persis tiga skenario utama, jadi spesies belum dikunci.",
+            namaObat: "Insektisida ulat sesuai label (contoh bahan: emamektin benzoat)",
+            bahan: "Emamektin benzoat",
+            jenis: "Insektisida",
+            dosis: "Ikuti label / liter air",
+            waktu: "Pagi, pukul 06.00–08.00",
+            metode: "Ambil ulat besar dengan tangan bersarung, lalu semprot daun yang berlubang sesuai label produk yang Anda pegang.",
+            aman: "Jangan memakai takaran dari ingatan." + tambahan
+          };
+        } else if (/keriting|kutu|kebul|embun/.test(gejala)) {
+          profil = {
+            idH: "HM-FB1", idO: "OB-FB1", idP: "PA-FB1",
+            namaHama: "Hama pengisap daun (dugaan kutu)",
+            gejalaKhas: "Keluhan mengarah ke daun keriting atau kutu. Bisa kutu kebul atau kutu daun. Cek balik daun.",
+            parah: "Sedang",
+            rujukan: "[Data dummy prototipe] Fallback cerdas: gejala pengisap dikenali dari kata kunci, spesies belum dikonfirmasi.",
+            namaObat: "Insektisida pengisap sesuai label (contoh bahan: abamektin)",
+            bahan: "Abamektin",
+            jenis: "Insektisida",
+            dosis: "Ikuti label / liter air",
+            waktu: "Sore, pukul 16.00–17.30",
+            metode: "Semprot bawah daun. Kalau pucuk sudah sangat kerdil dan kuning, cabut tanaman supaya tidak menjadi sumber virus.",
+            aman: "Contoh bahan aktif hanya ilustrasi sampai nama hama dipastikan." + tambahan
+          };
+        } else if (/bercak|berair|jamur|busuk|bulu|coklat|cokelat/.test(gejala)) {
+          profil = {
+            idH: "HM-FB3", idO: "OB-FB3", idP: "PA-FB3",
+            namaHama: "Penyakit jamur daun (dugaan dari bercak/busuk)",
+            gejalaKhas: "Keluhan menyebut bercak, busuk, atau jamur. Lapisan lembap membuat gejala cepat meluas.",
+            parah: "Tinggi",
+            rujukan: "[Data dummy prototipe] Fallback cerdas: pola jamur dikenali dari kalimat bebas, patogen belum diidentifikasi di lab.",
+            namaObat: "Fungisida sesuai label, setelah daun sakit dipetik",
+            bahan: "Sesuai produk fungisida yang dibeli",
+            jenis: "Fungisida",
+            dosis: "Ikuti label / liter air",
+            waktu: "Pagi, pukul 06.00–08.00",
+            metode: "Petik bagian yang busuk, masukkan kantong tertutup, lalu semprot daun di sekitarnya. Jangan siram dari atas.",
+            aman: "Jangan menuang fungisida ke aliran nutrisi." + tambahan
+          };
+        } else if (/layu|menguning|kuning|kering/.test(gejala)) {
+          profil = {
+            idH: "HM-FB4", idO: "OB-FB4", idP: "PA-FB4",
+            namaHama: "Layu atau daun menguning — belum spesifik",
+            gejalaKhas: "Menguning atau layu bisa berasal dari kutu, jamur akar, atau kekurangan hara. Satu kalimat ini belum cukup untuk menunjuk satu obat.",
+            parah: "Perlu dikonfirmasi",
+            rujukan: "[Data dummy prototipe] Fallback cerdas menahan rekomendasi pestisida karena gejala masih ambigu.",
+            namaObat: "Belum ada obat semprot yang tepat",
+            bahan: "—",
+            jenis: "Belum direkomendasikan",
+            dosis: "Belum ditetapkan",
+            waktu: "Tunda penyemprotan sampai penyebab lebih jelas",
+            metode: "Besok pagi, cek balik daun (kutu), pangkal batang (busuk coklat), dan kelembapan media. Foto ulang bagian itu.",
+            aman: "Jangan mencampur beberapa pestisida sekaligus hanya karena tanaman terlihat lemas."
+          };
+        } else {
+          profil = {
+            idH: "HM-FB5", idO: "OB-FB5", idP: "PA-FB5",
+            namaHama: "Gejala belum masuk pola hama/penyakit demo",
+            gejalaKhas: "Kalimat belum memuat pola kutu, ulat, atau jamur yang ada di basis prototipe. Perlu deskripsi yang lebih konkret.",
+            parah: "Perlu dikonfirmasi",
+            rujukan: "[Data dummy prototipe] Fallback cerdas: tidak memaksakan tiga skenario utama bila kata kunci tidak cocok.",
+            namaObat: "Belum ada obat semprot yang tepat",
+            bahan: "—",
+            jenis: "Belum direkomendasikan",
+            dosis: "Belum ditetapkan",
+            waktu: "Jangan semprot dulu",
+            metode: "Tuliskan bagian tanaman, warna bercak, dan apakah ada serangga. Tombol gejala cepat di langkah 3 bisa dipakai sebagai pembanding.",
+            aman: "Menyemprot tanpa gejala yang jelas lebih berisiko daripada menunggu 1–2 hari sambil mengamati."
+          };
+        }
+        const hama = new Hama({
+          id: profil.idH,
+          namaHama: profil.namaHama,
+          gejalaKhas: profil.gejalaKhas + " Keluhan asli: \"" + input.keluhan + "\".",
+          tingkatKeparahan: profil.parah,
+          referensiArtikel: profil.rujukan
+        });
+        const obat = new ObatHama({
+          id: profil.idO,
+          hamaId: hama.id,
+          namaObat: profil.namaObat,
+          bahanAktif: profil.bahan,
+          jenisPestisida: profil.jenis
+        });
+        const aplikasi = new PengaplikasianObat({
+          id: profil.idP,
+          obatId: obat.id,
+          dosisPerLiter: profil.dosis,
+          waktuAplikasi: profil.waktu,
+          metodeSemprot: profil.metode,
+          catatanKeamanan: profil.aman + " Minta penyuluh melihat tanaman bila tidak membaik dalam 2–3 hari."
+        });
+        return {
+          tanaman: new NamaTanaman({
+            id: "NT-SESI",
+            jenisTanaman: input.jenisTanaman,
+            varietas: input.varietas,
+            faseTumbuh: input.faseTumbuh
+          }),
+          media: MediaTanam.dari(input.mediaObjek),
+          hama: hama,
+          obat: obat,
+          aplikasi: aplikasi,
+          kecocokan: "Kecocokan basis data: Perkiraan",
+          jalur: "Fallback cerdas · pola di luar tiga skenario utama",
+          keluhan: input.keluhan
+        };
+      }
+    }
+
+    class AsistenChat {
+      constructor(sesi) { this.sesi = sesi; }
+
+      sapaan() {
+        const t = this.sesi.tanaman;
+        const m = this.sesi.media;
+        const h = this.sesi.hama;
+        const obat = this.sesi.obat;
+        let buka = "Halo. Saya menyimpan konteks konsultasi ini.\n\nTanaman: " + t.jenisTanaman + " varietas " + t.varietas + " (" + t.faseTumbuh + ").\nMedia: " + m.jenisMedia + ", pH ideal " + m.phIdeal + ".\nDugaan: " + h.namaHama + ".";
+        if (!obat.siapDipakai()) {
+          buka += "\n\nPestisida belum saya sarankan karena gejalanya masih umum. Tanyakan apa yang perlu dicek di lahan, atau tulis gejala yang lebih spesifik.";
+        } else {
+          buka += "\n\nSilakan tanya alternatif organik, interval semprot ulang, atau cara mencampur larutan.";
+        }
+        return buka;
+      }
+
+      balas(pertanyaan) {
+        const q = norm(pertanyaan);
+        if (!this.sesi.hama) return "Analisis belum selesai, jadi saya belum punya objek hama untuk dijawab.";
+        if (/organik|nabati|alami|alternatif/.test(q)) return this.jawabOrganik();
+        if (/berapa hari|interval|semprot ulang|penyemprotan ulang|kapan lagi/.test(q)) return this.jawabInterval();
+        if (/campur|larutan|takar|tangki| liter| ml|dosis/.test(q)) return this.jawabCampur(pertanyaan);
+        if (/hujan|hujanan/.test(q)) return this.jawabHujan();
+        if (/panen|residu|aman|bahaya|phi|jeda/.test(q)) return this.jawabAman();
+        if (/pupuk/.test(q)) return this.jawabPupuk();
+        if (/ph\b|media|cocopeat|hidro|tandon|nutrisi|sekam|bedengan/.test(q)) return this.jawabMedia();
+        if (/gejala|kenapa|penyebab|mengapa|apa yang/.test(q)) return this.jawabGejala();
+        if (/kapan|waktu|jam/.test(q)) return this.jawabWaktu();
+        return this.jawabUmum();
+      }
+
+      jawabOrganik() {
+        const nama = this.sesi.hama.namaHama.toLowerCase();
+        const kepala = this.kepala();
+        if (nama.includes("ulat") || nama.includes("grayak")) {
+          return kepala + "Alternatif yang lebih lembut: pungut telur dan ulat setiap pagi, lalu semprot Bacillus thuringiensis (BT) sesuai dosis pada kemasannya. Saya tidak mengunci angka gram karena tiap merek berbeda.\n\n" + this.penutup();
+        }
+        if (nama.includes("busuk") || nama.includes("jamur") || nama.includes("bercak")) {
+          return kepala + "Di gejala jamur, langkah pertama adalah sanitasi: petik daun sakit dan buang tertutup. Alternatif semprot yang lebih lembut adalah agensia Trichoderma ke daun, mengikuti label, bukan ke air nutrisi.\n\n" + this.penutup();
+        }
+        if (nama.includes("kutu") || nama.includes("kebul") || nama.includes("pengisap")) {
+          return kepala + "Alternatif nabati yang sering dipakai penyuluh: sekitar 5 ml minyak nimba per liter air, ditambah sedikit sabun lembut sebagai perekat — bukan detergen cuci. Semprot balik daun pada sore hari. Ulangi sekitar 4 hari sekali bila kutu masih ada. Tanaman yang sudah kerdil parah lebih baik dicabut.\n\n" + this.penutup();
+        }
+        return kepala + "Karena diagnosis masih umum, jangan beralih ke ramuan campur aduk. Mulai dari membuang bagian rusak dan mengecek balik daun besok pagi.\n\n" + this.penutup();
+      }
+
+      jawabInterval() {
+        const nama = this.sesi.hama.namaHama.toLowerCase();
+        const kepala = this.kepala();
+        if (!this.sesi.obat.siapDipakai()) {
+          return kepala + "Belum ada jadwal semprot karena obatnya belum direkomendasikan. Amati lagi 1–2 hari. Kalau gejala bertambah luas, tulis kondisi barunya di chat ini.\n\n" + this.penutup();
+        }
+        let jeda = "Ulangi 7 hari sekali, paling banyak 2–3 kali, lalu evaluasi.";
+        if (nama.includes("kebul") || nama.includes("kutu") || nama.includes("pengisap")) {
+          jeda = "Semprot ulang 5–7 hari sekali, paling banyak 3 kali berturut-turut. Bila kutu masih ramai, ganti bahan aktif. Jangan memakai abamektin terus-menerus.";
+        } else if (nama.includes("ulat") || nama.includes("grayak")) {
+          jeda = "Cek daun setiap 2 hari. Semprot kimia ulang 7 hari sekali hanya bila ulat baru masih muncul. Selingi dengan pungut tangan.";
+        } else if (nama.includes("busuk") || nama.includes("jamur")) {
+          jeda = "Setelah daun sakit dipetik, semprot ulang 5–7 hari sekali bila bercak baru masih muncul. Mendekati panen, berhenti sesuai jeda pada label.";
+        }
+        return kepala + jeda + " Waktu yang tercatat: " + this.sesi.aplikasi.waktuAplikasi + ".\n\n" + this.penutup();
+      }
+
+      jawabCampur(asli) {
+        const aplikasi = this.sesi.aplikasi;
+        const kepala = this.kepala();
+        if (!this.sesi.obat.siapDipakai()) {
+          return kepala + "Belum ada larutan yang perlu dicampur. Kalau nanti obat sudah jelas, isi tangki dengan air dulu, baru obat, lalu aduk. Jangan dibalik.\n\n" + this.penutup();
+        }
+        const angka = String(aplikasi.dosisPerLiter).match(/(\d+(?:[.,]\d+)?)/);
+        const satuan = / g/.test(aplikasi.dosisPerLiter) ? "g" : "ml";
+        const liter = String(asli).match(/(\d+(?:[.,]\d+)?)\s*liter/);
+        let hitung = "Dosis pada kartu (objek PengaplikasianObat) adalah " + aplikasi.dosisPerLiter + ".";
+        if (angka && /ml|g/.test(aplikasi.dosisPerLiter)) {
+          const perLiter = parseFloat(angka[1].replace(",", "."));
+          const volume = liter ? parseFloat(liter[1].replace(",", ".")) : 10;
+          const total = Math.round(perLiter * volume * 10) / 10;
+          hitung += " Untuk " + String(volume).replace(".", ",") + " liter air, contoh hitungan demo: " + String(total).replace(".", ",") + " " + satuan + ". Angka ini diambil dari dosis contoh, lalu dikali jumlah liter.";
+        } else {
+          hitung += " Takaran pastinya ada di label produk, karena kartu ini tidak mengunci angka mililiter.";
+        }
+        return kepala + hitung + " Isi ember dengan air bersih, masukkan obat, aduk, lalu semprot sampai daun basah — bukan menetes deras. Jangan campur dengan pupuk daun di tangki yang sama. Sisa larutan dibuang sesuai label, tidak disimpan untuk besok.\n\n" + this.penutup();
+      }
+
+      jawabHujan() {
+        return this.kepala() + "Kalau hujan turun dalam kira-kira 4 jam setelah semprot, anggap lapisan obat sudah larut. Ulangi pada " + this.sesi.aplikasi.waktuAplikasi + " saat daun sudah kering.\n\n" + this.penutup();
+      }
+
+      jawabAman() {
+        return this.kepala() + "Bahan aktif yang tercatat: " + this.sesi.obat.bahanAktif + ". Jangan memetik untuk dimakan sebelum jeda pada kemasan terpenuhi. Cuci tangan setelah menyemprot, dan simpan botol terkunci.\n\n" + this.penutup();
+      }
+
+      jawabPupuk() {
+        return this.kepala() + "Pupuk daun dan pestisida jangan dicampur dalam satu tangki. Beri jeda minimal sehari. Media " + this.sesi.media.jenisMedia + " tetap dijaga di pH " + this.sesi.media.phIdeal + ".\n\n" + this.penutup();
+      }
+
+      jawabMedia() {
+        const m = this.sesi.media;
+        let ekstra = m.karakteristik;
+        if (m.hidroponik()) ekstra += " Apa pun yang disemprot tidak boleh masuk ke tandon.";
+        return this.kepala() + "Media yang tersimpan objeknya: " + m.jenisMedia + " (pH ideal " + m.phIdeal + "). " + ekstra + "\n\n" + this.penutup();
+      }
+
+      jawabGejala() {
+        return this.kepala() + this.sesi.hama.gejalaKhas + "\n\n" + this.penutup();
+      }
+
+      jawabWaktu() {
+        return this.kepala() + "Waktu pada objek PengaplikasianObat: " + this.sesi.aplikasi.waktuAplikasi + ". " + this.sesi.aplikasi.metodeSemprot + "\n\n" + this.penutup();
+      }
+
+      jawabUmum() {
+        const s = this.sesi;
+        return "Saya tetap memegang sesi ini: " + s.tanaman.jenisTanaman + " varietas " + s.tanaman.varietas + ", media " + s.media.jenisMedia + ", dugaan " + s.hama.namaHama + ".\n\nPertanyaan itu belum punya aturan khusus di basis demo. Yang tetap saya pegang: dosis " + s.aplikasi.dosisPerLiter + ", waktu " + s.aplikasi.waktuAplikasi + ". Coba tanyakan alternatif organik, interval semprot, atau cara mencampur larutan.";
+      }
+
+      kepala() {
+        const s = this.sesi;
+        return "Untuk " + s.tanaman.jenisTanaman + " varietas " + s.tanaman.varietas + " di " + s.media.jenisMedia + ": ";
+      }
+
+      penutup() {
+        let teks = this.sesi.aplikasi.catatanKeamanan;
+        if (/panen/i.test(this.sesi.tanaman.faseTumbuh)) {
+          teks += " Fase tumbuh saat ini menjelang panen, jadi jeda petik pada label jangan dipersingkat.";
+        }
+        return teks;
+      }
+    }
+
+    class AntarmukaAgroDoc {
+      constructor() {
+        this.mesin = new MesinDiagnosis();
+        this.sesi = new SesiKonsultasi();
+        this.chat = new AsistenChat(this.sesi);
+        this.langkah = 1;
+        this.mediaTerpilih = "";
+        this.faseManual = false;
+        this.drawerOpen = false;
+        this.token = 0;
+        this.sedangMengetik = false;
+        this.preset = {
+          "Cabai Rawit": ["Dewata", "Bara", "Pelita 8"],
+          "Tomat": ["Servo", "Tymoti", "Intan"],
+          "Selada": ["Romaine", "Grand Rapids", "Kriebo"]
+        };
+        this.faseAwal = { "Cabai Rawit": "Generatif", "Tomat": "Generatif", "Selada": "Vegetatif" };
+        this.gejalaCepat = [
+          "Daun keriting & menguning",
+          "Daun berlubang dimakan ulat",
+          "Bercak coklat berair"
+        ];
+        this.cache();
+        this.renderPilihan();
+        this.bind();
+        this.tampil("home");
+        this.tick();
+        setInterval(() => this.tick(), 15000);
+      }
+
+      cache() {
+        this.stepper = document.getElementById("stepper");
+        this.stepCaption = document.getElementById("step-caption");
+        this.dots = Array.from(document.querySelectorAll(".dot"));
+        this.badge = document.getElementById("badge-jumlah");
+        this.jenisInput = document.getElementById("jenis");
+        this.varietasInput = document.getElementById("varietas");
+        this.faseInput = document.getElementById("fase");
+        this.chipJenis = document.getElementById("chip-jenis");
+        this.chipVarietas = document.getElementById("chip-varietas");
+        this.mediaWrap = document.getElementById("media-wrap");
+        this.previewTanaman = document.getElementById("preview-tanaman");
+        this.previewMedia = document.getElementById("preview-media");
+        this.siapTeks = document.getElementById("siap-teks");
+        this.keluhanInput = document.getElementById("keluhan");
+        this.qfillWrap = document.getElementById("qfill-wrap");
+        this.formError = document.getElementById("form-error");
+        this.formScroll = document.getElementById("form-scroll");
+        this.fotoInput = document.getElementById("foto-input");
+        this.fotoKosong = document.getElementById("foto-kosong");
+        this.fotoIsi = document.getElementById("foto-isi");
+        this.fotoImg = document.getElementById("foto-img");
+        this.btnHapusFoto = document.getElementById("btn-hapus-foto");
+        this.btnBack = document.getElementById("btn-back");
+        this.btnNext = document.getElementById("btn-next");
+        this.loadNote = document.getElementById("load-note");
+        this.hasilScroll = document.getElementById("hasil-scroll");
+        this.chatLog = document.getElementById("chat-log");
+        this.chatInput = document.getElementById("chat-input");
+        this.suggests = document.getElementById("suggests");
+        this.doseBox = document.getElementById("dose-box");
+        this.bannerPanen = document.getElementById("banner-panen");
+        this.drawerBody = document.getElementById("drawer-body");
+        this.panels = [
+          document.getElementById("panel-1"),
+          document.getElementById("panel-2"),
+          document.getElementById("panel-3")
+        ];
+      }
+
+      bind() {
+        document.getElementById("btn-mulai").addEventListener("click", () => this.bukaForm(1));
+        document.getElementById("btn-skema").addEventListener("click", () => this.bukaSkema());
+        document.getElementById("btn-tutup-skema").addEventListener("click", () => this.tutupSkema());
+        document.getElementById("overlay").addEventListener("click", () => this.tutupSkema());
+        document.getElementById("btn-back").addEventListener("click", () => this.kembali());
+        document.getElementById("btn-next").addEventListener("click", () => this.lanjut());
+        document.getElementById("btn-baru").addEventListener("click", () => this.resetPenuh());
+        document.getElementById("btn-ubah").addEventListener("click", () => this.ubahData());
+        document.getElementById("btn-foto").addEventListener("click", () => this.fotoInput.click());
+        document.getElementById("btn-hapus-foto").addEventListener("click", () => this.hapusFoto());
+        this.fotoInput.addEventListener("change", (e) => this.bacaFoto(e));
+        this.jenisInput.addEventListener("input", () => this.onJenisInput());
+        this.varietasInput.addEventListener("input", () => this.onFormInput());
+        this.faseInput.addEventListener("change", () => {
+          this.faseManual = true;
+          this.onFormInput();
+        });
+        this.keluhanInput.addEventListener("input", () => this.onFormInput());
+        document.getElementById("chat-form").addEventListener("submit", (e) => {
+          e.preventDefault();
+          this.kirimChat(this.chatInput.value);
+        });
+        document.addEventListener("keydown", (e) => {
+          if (e.key === "Escape") this.tutupSkema();
+        });
+      }
+
+      renderPilihan() {
+        Object.keys(this.preset).forEach((jenis) => {
+          const b = document.createElement("button");
+          b.type = "button";
+          b.className = "chip";
+          b.dataset.jenis = jenis;
+          b.textContent = jenis;
+          b.addEventListener("click", () => {
+            this.jenisInput.value = jenis;
+            if (!this.faseManual) this.faseInput.value = this.faseAwal[jenis];
+            this.varietasInput.value = this.preset[jenis][0];
+            this.onFormInput();
+          });
+          this.chipJenis.appendChild(b);
+        });
+        this.mesin.mediaKatalog.forEach((media) => {
+          const b = document.createElement("button");
+          b.type = "button";
+          b.className = "media-card";
+          b.dataset.media = media.jenisMedia;
+          const nama = document.createElement("strong");
+          nama.textContent = media.jenisMedia;
+          const ph = document.createElement("em");
+          ph.textContent = "pH ideal " + media.phIdeal + " · " + media.id;
+          const sifat = document.createElement("span");
+          sifat.textContent = media.karakteristik;
+          b.append(nama, ph, sifat);
+          b.addEventListener("click", () => {
+            this.mediaTerpilih = media.jenisMedia;
+            this.onFormInput();
+          });
+          this.mediaWrap.appendChild(b);
+        });
+        this.gejalaCepat.forEach((teks) => {
+          const b = document.createElement("button");
+          b.type = "button";
+          b.className = "qfill";
+          b.dataset.gejala = teks;
+          b.textContent = teks;
+          b.addEventListener("click", () => {
+            this.keluhanInput.value = teks;
+            this.onFormInput();
+          });
+          this.qfillWrap.appendChild(b);
+        });
+        ["Ada alternatif obat organik?", "Berapa hari sekali semprot ulang?", "Bagaimana cara mencampur larutannya?"].forEach((teks) => {
+          const b = document.createElement("button");
+          b.type = "button";
+          b.className = "suggest";
+          b.textContent = teks;
+          b.addEventListener("click", () => this.kirimChat(teks));
+          this.suggests.appendChild(b);
+        });
+      }
+
+      tick() {
+        const teks = new Intl.DateTimeFormat("id-ID", {
+          hour: "2-digit", minute: "2-digit", hourCycle: "h23", timeZone: "Asia/Jakarta"
+        }).format(new Date());
+        const clock = document.getElementById("clock");
+        if (clock) clock.textContent = teks;
+      }
+
+      tampil(nama) {
+        ["home", "form", "loading", "hasil"].forEach((k) => {
+          document.getElementById("view-" + k).classList.toggle("is-on", k === nama);
+        });
+        if (nama === "home") this.tampilProgress(0);
+        if (nama === "form") this.tampilProgress(this.langkah);
+        if (nama === "loading") this.tampilProgress(4);
+        if (nama === "hasil") this.tampilProgress(5);
+      }
+
+      tampilProgress(n) {
+        this.stepper.classList.toggle("is-hidden", n === 0);
+        const caption = [
+          "",
+          "Langkah 1 dari 6 — Jenis & varietas tanaman",
+          "Langkah 2 dari 6 — Media tanam",
+          "Langkah 3 dari 6 — Foto & keluhan",
+          "Langkah 4 dari 6 — Analisis kondisi",
+          "Langkah 5–6 — Kartu diagnosis & room chat"
+        ];
+        this.stepCaption.textContent = caption[n] || "";
+        this.dots.forEach((dot, i) => {
+          const nomor = i + 1;
+          const selesai = n === 5 ? nomor <= 4 : nomor < n;
+          const kini = n === 5 ? nomor >= 5 : nomor === n;
+          dot.classList.toggle("is-done", selesai);
+          dot.classList.toggle("is-now", kini);
+        });
+      }
+
+      bukaForm(langkah) {
+        this.langkah = langkah;
+        this.tampil("form");
+        this.tampilPanel();
+        this.onFormInput();
+      }
+
+      tampilPanel() {
+        this.panels.forEach((panel, i) => panel.classList.toggle("is-hidden", i !== this.langkah - 1));
+        this.btnBack.textContent = this.langkah === 1 ? "Beranda" : "Kembali";
+        this.btnNext.textContent = this.langkah === 3 ? "Analisis Kondisi Tanaman" : "Lanjut";
+        this.formScroll.scrollTop = 0;
+        this.tampilProgress(this.langkah);
+      }
+
+      kunciPreset(jenis) {
+        const n = norm(jenis);
+        if (n.includes("cabai") || n.includes("cabe") || n.includes("rawit")) return "Cabai Rawit";
+        if (n.includes("tomat")) return "Tomat";
+        if (n.includes("selada")) return "Selada";
+        return "";
+      }
+
+      onJenisInput() {
+        const kunci = this.kunciPreset(this.jenisInput.value);
+        if (kunci && !this.varietasInput.value.trim()) {
+          this.varietasInput.value = this.preset[kunci][0];
+          if (!this.faseManual) this.faseInput.value = this.faseAwal[kunci];
+        }
+        this.onFormInput();
+      }
+
+      onFormInput() {
+        this.perbaruiDraf();
+        this.syncPilihan();
+        this.renderPreview();
+        this.renderBadge();
+        this.clearError();
+        if (this.drawerOpen) this.renderDrawer();
+      }
+
+      perbaruiDraf() {
+        const jenis = this.jenisInput.value.trim();
+        const varietas = this.varietasInput.value.trim();
+        if (jenis && varietas) {
+          this.sesi.tanaman = new NamaTanaman({
+            id: "NT-DRAF",
+            jenisTanaman: jenis,
+            varietas: varietas,
+            faseTumbuh: this.faseInput.value
+          });
+        } else {
+          this.sesi.tanaman = null;
+        }
+        const katalog = this.mesin.ambilMedia(this.mediaTerpilih);
+        this.sesi.media = katalog ? MediaTanam.dari(katalog) : null;
+        this.sesi.hama = null;
+        this.sesi.obat = null;
+        this.sesi.aplikasi = null;
+      }
+
+      syncPilihan() {
+        const jenis = this.jenisInput.value.trim();
+        this.chipJenis.querySelectorAll(".chip").forEach((chip) => {
+          chip.classList.toggle("is-on", chip.dataset.jenis === jenis);
+        });
+        const kunci = this.kunciPreset(jenis);
+        const daftar = kunci ? this.preset[kunci] : [];
+        this.chipVarietas.replaceChildren();
+        daftar.forEach((item) => {
+          const b = document.createElement("button");
+          b.type = "button";
+          b.className = "chip" + (this.varietasInput.value.trim() === item ? " is-on" : "");
+          b.textContent = item;
+          b.addEventListener("click", () => {
+            this.varietasInput.value = item;
+            this.onFormInput();
+          });
+          this.chipVarietas.appendChild(b);
+        });
+        this.mediaWrap.querySelectorAll(".media-card").forEach((kartu) => {
+          kartu.classList.toggle("is-on", kartu.dataset.media === this.mediaTerpilih);
+        });
+        this.qfillWrap.querySelectorAll(".qfill").forEach((tombol) => {
+          tombol.classList.toggle("is-on", tombol.dataset.gejala === this.keluhanInput.value.trim());
+        });
+      }
+
+      renderPreview() {
+        const t = this.sesi.tanaman;
+        const m = this.sesi.media;
+        this.previewTanaman.lastElementChild.textContent = t
+          ? t.id + " · " + t.jenisTanaman + " · " + t.varietas + " · " + t.faseTumbuh
+          : "Objek muncul setelah jenis dan varietas diisi.";
+        this.previewMedia.lastElementChild.textContent = m
+          ? m.id + " · " + m.jenisMedia + " · pH " + m.phIdeal
+          : "Pilih salah satu media untuk menginstansiasi objek.";
+        const bagian = [];
+        if (t) bagian.push(t.toString());
+        if (m) bagian.push(m.toString());
+        this.siapTeks.textContent = bagian.length
+          ? bagian.join("  +  ")
+          : "Lengkapi jenis, varietas, dan media tanam.";
+      }
+
+      renderBadge() {
+        this.badge.textContent = String(this.sesi.jumlahObjek());
+      }
+
+      clearError() {
+        this.formError.classList.add("is-hidden");
+        this.formError.textContent = "";
+      }
+
+      gagal(pesan) {
+        this.formError.textContent = pesan;
+        this.formError.classList.remove("is-hidden");
+        const panel = this.panels[this.langkah - 1];
+        panel.classList.remove("shake");
+        void panel.offsetWidth;
+        panel.classList.add("shake");
+      }
+
+      kembali() {
+        this.clearError();
+        if (this.langkah === 1) {
+          this.tampil("home");
+          return;
+        }
+        this.langkah -= 1;
+        this.tampilPanel();
+      }
+
+      lanjut() {
+        this.clearError();
+        if (this.langkah === 1) {
+          if (!this.jenisInput.value.trim() || !this.varietasInput.value.trim()) {
+            this.gagal("Isi jenis tanaman dan varietasnya dulu. Contoh: Cabai Rawit, varietas Dewata.");
+            return;
+          }
+          this.langkah = 2;
+          this.perbaruiDraf();
+          this.tampilPanel();
+          return;
+        }
+        if (this.langkah === 2) {
+          if (!this.sesi.media) {
+            this.gagal("Pilih media tanam yang sedang dipakai.");
+            return;
+          }
+          this.langkah = 3;
+          this.tampilPanel();
+          return;
+        }
+        const keluhan = this.keluhanInput.value.trim();
+        if (keluhan.length < 8) {
+          this.gagal("Tuliskan keluhan tanaman, atau pilih salah satu gejala cepat.");
+          return;
+        }
+        this.perbaruiDraf();
+        this.mulaiAnalisis(keluhan);
+      }
+
+      bacaFoto(event) {
+        const file = event.target.files && event.target.files[0];
+        if (!file) return;
+        if (!file.type || file.type.indexOf("image/") !== 0) {
+          this.gagal("File yang dipilih bukan gambar.");
+          return;
+        }
+        const reader = new FileReader();
+        reader.onload = () => {
+          this.sesi.foto = String(reader.result || "");
+          this.fotoImg.src = this.sesi.foto;
+          this.fotoKosong.classList.add("is-hidden");
+          this.fotoIsi.classList.remove("is-hidden");
+          this.btnHapusFoto.classList.remove("is-hidden");
+        };
+        reader.onerror = () => this.gagal("Foto tidak bisa dibaca di peramban ini.");
+        reader.readAsDataURL(file);
+      }
+
+      hapusFoto() {
+        this.sesi.foto = "";
+        this.fotoInput.value = "";
+        this.fotoImg.removeAttribute("src");
+        this.fotoIsi.classList.add("is-hidden");
+        this.fotoKosong.classList.remove("is-hidden");
+        this.btnHapusFoto.classList.add("is-hidden");
+      }
+
+      mulaiAnalisis(keluhan) {
+        const hasil = this.mesin.diagnosis({
+          jenisTanaman: this.sesi.tanaman.jenisTanaman,
+          varietas: this.sesi.tanaman.varietas,
+          faseTumbuh: this.sesi.tanaman.faseTumbuh,
+          mediaObjek: this.sesi.media,
+          keluhan: keluhan
+        });
+        const foto = this.sesi.foto;
+        this.sesi.terapkan(hasil);
+        this.sesi.foto = foto;
+        this.renderBadge();
+        this.token += 1;
+        const token = this.token;
+        this.resetLoading();
+        this.loadNote.textContent = foto
+          ? "Foto tersimpan sebagai lampiran. Pencocokan demo memakai deskripsi keluhan."
+          : "Tidak ada foto. Pencocokan memakai deskripsi keluhan.";
+        this.tampil("loading");
+        const jeda = window.matchMedia("(prefers-reduced-motion: reduce)").matches
+          ? [200, 400, 600, 800]
+          : [700, 1500, 2400, 3000];
+        window.setTimeout(() => { if (token === this.token) this.setLoad(1, "done", 2); }, jeda[0]);
+        window.setTimeout(() => { if (token === this.token) this.setLoad(2, "done", 3); }, jeda[1]);
+        window.setTimeout(() => { if (token === this.token) this.setLoad(3, "done", 0); }, jeda[2]);
+        window.setTimeout(() => { if (token === this.token) this.bukaHasil(); }, jeda[3]);
+      }
+
+      resetLoading() {
+        [1, 2, 3].forEach((n) => this.setLoad(n, "wait", 0));
+        this.setLoad(1, "active", 0);
+      }
+
+      setLoad(selesai, state, berikutnya) {
+        const row = document.getElementById("load-" + selesai);
+        row.classList.remove("is-active", "is-done");
+        if (state === "active" || state === "done") row.classList.add(state === "done" ? "is-done" : "is-active");
+        if (berikutnya) {
+          const next = document.getElementById("load-" + berikutnya);
+          next.classList.add("is-active");
+        }
+      }
+
+      bukaHasil() {
+        this.renderHasil();
+        this.chatLog.replaceChildren();
+        this.tambahPesan("ai", this.chat.sapaan(), false);
+        this.tampil("hasil");
+        this.hasilScroll.scrollTop = 0;
+        this.renderBadge();
+        if (this.drawerOpen) this.renderDrawer();
+      }
+
+      renderHasil() {
+        const s = this.sesi;
+        const isi = {
+          kecocokan: s.kecocokan,
+          jalur: s.jalur,
+          keluhan: s.keluhan,
+          jenis: s.tanaman.jenisTanaman,
+          varietas: s.tanaman.varietas,
+          fase: s.tanaman.faseTumbuh,
+          idTanaman: s.tanaman.id,
+          media: s.media.jenisMedia,
+          ph: s.media.phIdeal,
+          idMedia: s.media.id,
+          karakter: s.media.karakteristik,
+          hama: s.hama.namaHama,
+          gejala: s.hama.gejalaKhas,
+          parah: "Keparahan: " + s.hama.tingkatKeparahan,
+          rujukan: s.hama.referensiArtikel,
+          idHama: s.hama.id,
+          obat: s.obat.namaObat,
+          bahan: s.obat.bahanAktif,
+          jenisPestisida: s.obat.jenisPestisida,
+          relasiObat: s.obat.id + " · hamaId " + s.obat.hamaId + " → Hama.id " + s.hama.id,
+          dosis: s.aplikasi.dosisPerLiter,
+          waktu: s.aplikasi.waktuAplikasi,
+          metode: s.aplikasi.metodeSemprot,
+          aman: s.aplikasi.catatanKeamanan,
+          relasiAplikasi: s.aplikasi.id + " · obatId " + s.aplikasi.obatId + " → ObatHama.id " + s.obat.id,
+          fotoNote: s.foto
+            ? "Foto ditampilkan sebagai lampiran. Diagnosis demo ini tidak membaca isi piksel."
+            : "Tidak ada foto lampiran. Diagnosis memakai kalimat keluhan."
+        };
+        Object.keys(isi).forEach((kunci) => {
+          const node = document.querySelector('[data-out="' + kunci + '"]');
+          if (node) node.textContent = isi[kunci];
+        });
+        const parah = document.querySelector('[data-out="parah"]');
+        parah.className = "pill " + (
+          s.hama.tingkatKeparahan === "Tinggi" ? "hot" :
+          s.hama.tingkatKeparahan === "Sedang" ? "warn" : "soft"
+        );
+        this.doseBox.classList.toggle("is-wait", !s.obat.siapDipakai());
+        this.bannerPanen.classList.toggle("is-hidden", !/panen/i.test(s.tanaman.faseTumbuh));
+        const gambar = document.getElementById("foto-hasil");
+        if (s.foto) {
+          gambar.src = s.foto;
+          gambar.classList.remove("is-hidden");
+        } else {
+          gambar.removeAttribute("src");
+          gambar.classList.add("is-hidden");
+        }
+      }
+
+      tambahPesan(peran, teks, gulir) {
+        const baris = document.createElement("div");
+        baris.className = "msg " + peran;
+        const gelembung = document.createElement("div");
+        gelembung.className = "bubble";
+        gelembung.textContent = teks;
+        baris.appendChild(gelembung);
+        this.chatLog.appendChild(baris);
+        if (gulir) this.hasilScroll.scrollTop = this.hasilScroll.scrollHeight;
+        return baris;
+      }
+
+      kirimChat(teks) {
+        const pesan = String(teks || "").trim();
+        if (!pesan || this.sedangMengetik || !this.sesi.hama) return;
+        this.chatInput.value = "";
+        this.tambahPesan("user", pesan, true);
+        this.sedangMengetik = true;
+        const tunggu = this.tambahPesan("ai", "", true);
+        tunggu.querySelector(".bubble").innerHTML = '<span class="dots-typing"><i></i><i></i><i></i></span>';
+        const token = this.token;
+        window.setTimeout(() => {
+          if (token !== this.token) return;
+          tunggu.remove();
+          this.tambahPesan("ai", this.chat.balas(pesan), true);
+          this.sedangMengetik = false;
+        }, 550);
+      }
+
+      ubahData() {
+        this.token += 1;
+        this.sedangMengetik = false;
+        this.bukaForm(1);
+      }
+
+      resetPenuh() {
+        this.token += 1;
+        this.sedangMengetik = false;
+        this.faseManual = false;
+        this.mediaTerpilih = "";
+        this.jenisInput.value = "";
+        this.varietasInput.value = "";
+        this.faseInput.value = "Vegetatif";
+        this.keluhanInput.value = "";
+        this.chatInput.value = "";
+        this.sesi.kosongkan();
+        this.hapusFoto();
+        this.clearError();
+        this.chatLog.replaceChildren();
+        this.renderBadge();
+        this.tampil("home");
+        if (this.drawerOpen) this.renderDrawer();
+      }
+
+      bukaSkema() {
+        this.drawerOpen = true;
+        this.renderDrawer();
+        document.getElementById("overlay").classList.add("is-open");
+        document.getElementById("drawer").classList.add("is-open");
+        document.getElementById("btn-skema").setAttribute("aria-expanded", "true");
+      }
+
+      tutupSkema() {
+        this.drawerOpen = false;
+        document.getElementById("overlay").classList.remove("is-open");
+        document.getElementById("drawer").classList.remove("is-open");
+        document.getElementById("btn-skema").setAttribute("aria-expanded", "false");
+      }
+
+      renderDrawer() {
+        const s = this.sesi;
+        const relasi = [
+          ["NamaTanaman", s.tanaman, "Objek tanaman pada sesi ini", ["id", "jenisTanaman", "varietas", "faseTumbuh"]],
+          ["MediaTanam", s.media, "ditanam pada", ["id", "jenisMedia", "phIdeal", "karakteristik"]],
+          ["Hama", s.hama, "didiagnosis sebagai", ["id", "namaHama", "gejalaKhas", "tingkatKeparahan", "referensiArtikel"]],
+          ["ObatHama", s.obat, "dikendalikan lewat hamaId", ["id", "hamaId", "namaObat", "bahanAktif", "jenisPestisida"]],
+          ["PengaplikasianObat", s.aplikasi, "diterapkan lewat obatId", ["id", "obatId", "dosisPerLiter", "waktuAplikasi", "metodeSemprot", "catatanKeamanan"]]
+        ];
+        const alur = relasi.map(([nama, objek]) => {
+          return "<b class=\"" + (objek ? "on" : "") + "\">" + nama + "</b>";
+        }).join("<i>→</i>");
+        let status;
+        if (s.rantaiUtuh()) {
+          status = "Rantai 5 objek terhubung. ObatHama.hamaId cocok dengan Hama.id, dan PengaplikasianObat.obatId cocok dengan ObatHama.id.";
+        } else if (s.jumlahObjek() > 0) {
+          status = s.jumlahObjek() + " objek sudah diinstansiasi. Hama, obat, dan cara semprot menyusul setelah analisis.";
+        } else {
+          status = "Belum ada objek. Isi konsultasi untuk melihat nilainya di sini.";
+        }
+        const kartu = relasi.map(([nama, objek, rel, fields], indeks) => {
+          const kepalaRel = indeks === 0 ? "" : "<p class=\"rel\">" + escapeHtml(rel) + "</p>";
+          if (!objek) {
+            return kepalaRel + "<article class=\"obj-card off\"><h4>class " + nama + "</h4><p class=\"fine\">Belum diinstansiasi.</p></article>";
+          }
+          const properti = fields.map((field) => {
+            const fk = field === "hamaId" || field === "obatId" ? " fk" : "";
+            return "<div class=\"prop" + fk + "\"><span>" + field + "</span><b>" + escapeHtml(objek[field]) + "</b></div>";
+          }).join("");
+          return kepalaRel + "<article class=\"obj-card\"><h4>class " + nama + "</h4>" + properti + "</article>";
+        }).join("");
+        const jalur = s.jalur ? "<p class=\"fine\" style=\"margin-top:8px;\">" + escapeHtml(s.jalur) + "</p>" : "";
+        this.drawerBody.innerHTML = "<div class=\"banner-status\">" + escapeHtml(status) + "</div><div class=\"flow\">" + alur + "</div>" + kartu + jalur + "<p class=\"fine\" style=\"margin-top:8px;\">Untuk demo kode, objek sesi ada di window.agroDoc.sesi.</p>";
+      }
+    }
+
+    window.agroDoc = new AntarmukaAgroDoc();
+  </script>
+</body>
+</html>
